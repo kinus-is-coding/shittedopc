@@ -1,32 +1,32 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/authContext';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
-import PrivateRoute from './utilities/PrivateRouter';
 import Headers from './components/Headers';
+import PrivateRoute from './utilities/PrivateRouter';
+import { AuthProvider } from './context/authContext'; // Import the Provider
 
-const App = () => {
-  const isAuth = !!localStorage.getItem('token'); // example auth check
+function App() {
+    return (
+        <Router>
+            {/* Wrap the entire application in the AuthProvider */}
+            <AuthProvider>
+                <Headers />
+                
+                <Routes>
+                    {/* The PrivateRoute will check for auth before showing its children */}
+                    <Route element={<PrivateRoute />}>
+                        <Route path="/" element={<HomePage />} />
+                        {/* Add other protected routes here (e.g., /settings) */}
+                    </Route>
 
-  return (
-    <AuthProvider> {/* Wrap everything with AuthProvider */}
-      <Router>
-        <Headers />
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute isAuth={isAuth}>
-                <HomePage />
-              </PrivateRoute>
-            }
-          />
-        </Routes>
-      </Router>
-    </AuthProvider>
-  );
-};
+                    {/* Public Routes */}
+                    <Route path="/login" element={<LoginPage />} />
+                    {/* Add other public routes here (e.g., /register) */}
+                </Routes>
+            </AuthProvider>
+        </Router>
+    );
+}
 
 export default App;

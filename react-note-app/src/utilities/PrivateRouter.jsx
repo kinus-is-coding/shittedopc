@@ -1,15 +1,13 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Outlet, Navigate } from 'react-router-dom';
+import { useContext } from 'react';
+import AuthContext from '../context/authContext';
 
-const PrivateRoute = ({ children, isAuth }) => {
-    console.log("hi")
-  if (!isAuth) {
-    // User is not logged in, redirect to login
-    return <Navigate to="/login" replace />;
-  }
+const PrivateRoute = () => {
+    // Get authTokens from the context
+    const { authTokens } = useContext(AuthContext);
 
-  // User is logged in, render children
-  return children;
+    // If tokens exist, render the child route (Outlet), otherwise navigate to login
+    return authTokens ? <Outlet /> : <Navigate to="/login" />;
 };
 
 export default PrivateRoute;

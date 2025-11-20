@@ -1,17 +1,20 @@
-import React,{useContext} from 'react'
-import AuthContext from '../context/authContext'
+import React, { useContext } from 'react';
+import AuthContext from '../context/authContext';
 
 const LoginPage = () => {
-    let {loginUser}=useContext(AuthContext)
-  return (
-    <div>
-        <form onSubmit={loginUser}>
-            <input type="text" name='username' placeholder='Enter username'/>
-            <input type="password" name='password' placeholder='Enter password'/>
-            <input type="submit" />
-        </form>
-    </div>
-  )
-}
+    // Get the loginUser function from the context
+    const { loginUser } = useContext(AuthContext);
 
-export default LoginPage
+    return (
+        <div>
+            <h2>Log In</h2>
+            <form onSubmit={loginUser}>
+                <input type="text" name="username" placeholder="Enter Username" required />
+                <input type="password" name="password" placeholder="Enter Password" required />
+                <button type="submit">Log In</button>
+            </form>
+        </div>
+    );
+};
+
+export default LoginPage;

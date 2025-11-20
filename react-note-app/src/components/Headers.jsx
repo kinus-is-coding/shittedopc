@@ -1,23 +1,27 @@
-import React,{ useContext} from 'react'
-import { Link } from 'react-router-dom'
+import React, { useContext } from 'react';
+import { Link } from 'react-router-dom';
 import AuthContext from '../context/authContext';
 
 const Headers = () => {
-    const { user } = useContext(AuthContext);
+    const { user, logoutUser } = useContext(AuthContext);
 
-  return (
-    <div>
-        <Link to="/">Home</Link>
-        <span>|</span>
-        {user?
-        (<p>logout</p>):
-        (<Link to="/login">Login</Link>)
-        }
-       
-        {user && <p>Hello {user.username}</p>}
-        
-    </div>
-  )
-}
+    return (
+        <header>
+            <nav>
+                <Link to="/">Home</Link>
+                <span> | </span>
+                {user ? (
+                    // Show Logout button if user is logged in
+                    <button onClick={logoutUser}>Logout</button>
+                ) : (
+                    // Show Login link if user is NOT logged in
+                    <Link to="/login">Login</Link>
+                )}
+            </nav>
+            {user && <span>Logged in as: **{user.username}**</span>}
+            <hr />
+        </header>
+    );
+};
 
-export default Headers
+export default Headers;

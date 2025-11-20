@@ -1,37 +1,93 @@
-import { createContext,useState,useEffect, Children } from "react"
-import { jwtDecode } from "jwt-decode";
+import { createContext, useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode'; // Used to decode the username
 
-const AuthContext=createContext()
-export default AuthContext;
-export const AuthProvider=({children})=>{
-    let [authToken,setAuthToken]=useState(null)
-    let [user,setUser]=useState(null)
-    let loginUser=async (e)=>{
-        e.preventDefault()
-       
-        let response= await  fetch("http://127.0.0.1:8000/login/",{
-            method:'POST',
-            headers:{
-                'Content-Type':'application/json'
-            },
-            body:JSON.stringify({'username':e.target.username.value,'password':e.target.password.value})
+// Set your DRF API base URL
+// ⚠️ IMPORTANT: Change this if your Django server is on a different address
+const baseUrl = 'http://127.0.0.1:8000/'; 
 
-        })
-        let data= await response.json()
-        if (response.status===200){
-            setAuthToken(data)
-            setUser(jwtDecode(data.access))
-        }else{
-            alert("WRONG")
+const AuthContext = createContext();
+
+// Function to decode the JWT and extract the user info (username)
+const decodeAndSetUser = (tokens, setUser) => {
+    try {
+        const decoded = jwtDecode(tokens.access);
+        setUser({ 
+            username: decoded.username // Assuming the username claim is in the token
+        }); 
+    } catch (error) {
+        console.error("Failed to decode JWT:", error);
+        setUser(null);
+    }
+};
+
+export const AuthProvider = ({ children }) => {
+    const [authTokens, setAuthTokens] = useState(() => 
+        localStorage.getItem('authTokens') 
+            ? JSON.parse(localStorage.getItem('authTokens')) 
+            : null
+    );
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true); 
+
+    const navigate = useNavigate();
+
+    // The function to handle login
+    const loginUser = async (e) => {
+        e.preventDefault();
+        const username = e.target.username.value;
+        const password = e.target.password.value;
+
+        try {
+            const response = await axios.post(`${baseUrl}login/`, {
+                username: username,
+                password: password,
+            });
+
+            const data = response.data;
+            
+            setAuthTokens(data);
+            localStorage.setItem('authTokens', JSON.stringify(data));
+            
+            decodeAndSetUser(data, setUser); // Decode and set the actual user
+            
+            navigate('/'); 
+
+        } catch (error) {
+            console.error('Login failed:', error.response ? error.response.data : error.message);
+            alert('Something went wrong! Check your credentials.');
         }
-    }
-    let contextData={
-        user:user,
-        loginUser:loginUser
-    }
+    };
+
+    // The function to handle logout
+    const logoutUser = () => {
+        setAuthTokens(null);
+        setUser(null);
+        localStorage.removeItem('authTokens');
+        navigate('/login');
+    };
+
+    useEffect(() => {
+        if (authTokens) {
+            decodeAndSetUser(authTokens, setUser);
+        }
+        setLoading(false);
+    }, [authTokens]);
+
+
+    const contextData = {
+        user: user,
+        authTokens: authTokens,
+        loginUser: loginUser,
+        logoutUser: logoutUser,
+    };
+
     return (
         <AuthContext.Provider value={contextData}>
-            {children}
+            {loading ? null : children}
         </AuthContext.Provider>
-    )
-}
+    );
+};
+
+export default AuthContext;
